@@ -2,6 +2,10 @@
 
 This repository contains a comprehensive suite of projects that implement **Huffman Coding** for file compression across multiple platforms and interfaces. It demonstrates the same core algorithm used in different environments — command-line in C++, GUI in Python (Tkinter), and Web (Flask + HTML/CSS/JS).
 
+## 🌐 Live Demo
+[https://huffmancompressor.onrender.com](https://huffmancompressor.onrender.com)
+
+
 ## 📁 Project Structure
 
 ```
