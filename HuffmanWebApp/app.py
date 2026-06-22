@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys
 from flask import Flask, request, render_template, send_file, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
@@ -11,6 +12,19 @@ UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "output"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+# Determine the correct executable name based on OS
+if sys.platform == "win32":
+    COMPRESSOR = os.path.abspath(os.path.join(os.path.dirname(__file__), "huffman_compressor.exe"))
+else:
+    COMPRESSOR = os.path.abspath(os.path.join(os.path.dirname(__file__), "huffman_compressor"))
+    # Compile on Linux if not already compiled
+    if not os.path.exists(COMPRESSOR):
+        subprocess.run([
+            "g++", "-std=c++17", "-Iinclude",
+            "src/huffman_tree.cpp", "src/encoder.cpp", "src/decoder.cpp", "main.cpp",
+            "-o", "huffman_compressor"
+        ], check=True)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -36,21 +50,16 @@ def index():
             output_path = os.path.abspath(os.path.join(OUTPUT_FOLDER, output_name))
             file.save(input_path)
 
-            # Path to C++ compressor executable
-            compressor_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "huffman_compressor.exe"))
-
-            # Debug info
-            print("Compressor path:", compressor_path)
+            print("Compressor path:", COMPRESSOR)
             print("Input path:", input_path)
             print("Output path:", output_path)
 
             try:
                 if action == "compress":
-                    subprocess.run([compressor_path, "-c", input_path, output_path], check=True)
+                    subprocess.run([COMPRESSOR, "-c", input_path, output_path], check=True)
                 else:
-                    subprocess.run([compressor_path, "-d", input_path, output_path], check=True)
+                    subprocess.run([COMPRESSOR, "-d", input_path, output_path], check=True)
 
-                # Wait until output file is actually created
                 if not os.path.exists(output_path):
                     flash("Error: Output file not created.")
                     return redirect(url_for("index"))
